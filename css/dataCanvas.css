@@ -1,22 +1,62 @@
 .data-canvas-view .data-canvas-item-view {
-    display: inline-block;
+    position: absolute;
+    z-index: 1;
+    width: 200px;
+}
+.data-canvas-view .data-canvas-item-view.z2 {
+    z-index: 2;
+}
+
+.data-canvas-view .data-canvas-item-view .title {
     background: #008CBA;
     color: white;
     cursor: default;
-    width: 200px;
-    position: relative;
-    padding: 6px 20px 6px 30px;
-    margin: 10px 10px 0 10px;
+    padding: 6px 25px;
 }
+
+.data-canvas-view .data-canvas-item-view ul {
+    margin: 0;
+    position: absolute;
+    width: 200px;
+    border: 1px solid #008CBA;
+    top: 30px;
+    left: 0;
+    max-height: 200px;
+    overflow: auto;
+    background: white;
+}
+.data-canvas-view .data-canvas-item-view li label {
+    padding: 0 10px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #008CBA;
+    white-space: nowrap;
+}
+
+.data-canvas-view .data-canvas-item-view li input {
+    margin: 0 5px 0 0;
+    position: relative;
+    top: 2px;
+}
+
+.canvas-items-holder {
+    position: relative;
+}
+
 
 .data-canvas-view .data-canvas-item-view i.remove {
     position: absolute;
-    left: 10px;
+    left: 5px;
+    cursor: pointer;
+}
+
+.data-canvas-view .data-canvas-item-view i.settings {
+    position: absolute;
+    right: 5px;
     cursor: pointer;
 }
 
 .data-canvas-view .data-canvas-item-view .table-name {
-    cursor: pointer;
     overflow: hidden;
     text-align: center;
     text-overflow: ellipsis;

@@ -9,12 +9,14 @@
 
 .dialog .mask {
     background: black;
+    z-index: 1;
     opacity: .3;
 }
 .dialog .dialog-container {
     background: white;
     min-width: 500px;
     max-width: 1000px;
+    z-index: 1;
     position: absolute;
 }
 .dialog .dialog-container .dialog-title {

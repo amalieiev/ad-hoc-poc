@@ -60,6 +60,28 @@ define(function (require) {
             }.bind(this));
 
             return conditions;
+        },
+        getRelations: function () {
+            var matches = {},
+                alreadyMathed = {};
+            _.each(this.toJSON(), function (canvasItem) {
+                _.each(canvasItem.columns, function (columnName) {
+                    if (matches[columnName]) {
+                        var t1 = canvasItem.name,
+                            t2 = matches[columnName][0];
+
+                        if (!alreadyMathed[t1]) {
+                            alreadyMathed[t1] = {};
+                        }
+
+                        alreadyMathed[t1][t2] = columnName;
+                    } else {
+                        matches[columnName] = [canvasItem.name];
+                    }
+                }.bind(this));
+            }.bind(this));
+
+            return alreadyMathed;
         }
     });
 });

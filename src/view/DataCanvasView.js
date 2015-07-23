@@ -5,7 +5,8 @@ define(function (require) {
     var Backbone = require('backbone'),
         $ = require('jquery'),
         _ = require('underscore'),
-        TableSettingsView = require('view/TableSettingsView'),
+        jsPlumb = require('jsplumb'),
+        DataCanvasItemModel = require('model/DataCanvasItemModel'),
         DataCanvasViewTemplate = require('text!template/DataCanvasViewTemplate.html'),
         DataCanvasItemView = require('view/DataCanvasItemView');
 
@@ -17,30 +18,122 @@ define(function (require) {
             'drop': 'onDrop'
         },
         initialize: function () {
+            this._subviews = [];
+
             this.listenTo(Tamanoir, 'tables:table:dragstart', this.onSidebarTableDragStart);
-            this.listenTo(Tamanoir, 'datacanvasitem:table:click', this.onDataCanvasItemClick);
             this.listenTo(this.collection, 'update', this.render);
             this.listenTo(this.collection, 'reset', this.render);
-
-            this.render();
         },
         render: function () {
             this.$el.html(this.template);
+
+            this.plumbInstance = jsPlumb.getInstance();
+
+            this.collection.each(this.resetMetadata, this);
             this.collection.each(this.addItem, this);
 
             this.calculateHeight();
             return this;
         },
-        addItem: function (model) {
+        resetMetadata: function (model) {
+            model.set({
+                availablePlace: {top: true, bottom: true, left: true, right: true},
+                position: {top: 0, left: 0}
+            });
+        },
+        addItem: function (model, index) {
             console.log('add canvas item', model);
 
-            this.$('.canvas-items-holder').append(new DataCanvasItemView({model: model}).$el);
-            this.$('.table-settings-holder').html(new TableSettingsView({model: model}).$el);
+            var itemView = new DataCanvasItemView({model: model}),
+                tableName = model.get('name'),
+                relatedTableName = model.get('relatedTable'),
+                relatedTable = this.collection.get(relatedTableName),
+                relatedTablePosition,
+                relatedTableAvailablePlace,
+                anchors;
+
+            this._subviews.push(itemView);
+
+            this.$('.canvas-items-holder').append(itemView.$el);
+
+            if (relatedTable) {
+                relatedTablePosition = relatedTable.get('position');
+                relatedTableAvailablePlace = relatedTable.get('availablePlace');
+
+                if (relatedTableAvailablePlace.right) {
+                    anchors = ['Right', 'Left'];
+                    relatedTableAvailablePlace.right = false;
+
+                    model.set({
+                        position: {
+                            top: relatedTablePosition.top,
+                            left: relatedTablePosition.left + 300
+                        }
+                    }, {silent: true});
+
+                    relatedTable.set({
+                        availablePlace: relatedTableAvailablePlace
+                    }, {silent: true});
+
+                    itemView.$el.css(model.get('position'));
+                } else if (relatedTableAvailablePlace.bottom) {
+                    anchors = ['Bottom', 'Top'];
+                    relatedTableAvailablePlace.bottom = false;
+
+                    model.set({
+                        position: {
+                            top: relatedTablePosition.top + 100,
+                            left: relatedTablePosition.left
+                        }
+                    }, {silent: true});
+
+                    relatedTable.set({
+                        availablePlace: relatedTableAvailablePlace
+                    }, {silent: true});
+
+                    itemView.$el.css(model.get('position'));
+                } else if (relatedTableAvailablePlace.left) {
+                    anchors = ['Left', 'Right'];
+                    relatedTableAvailablePlace.left = false;
+
+                    model.set({
+                        position: {
+                            top: relatedTablePosition.top,
+                            left: relatedTablePosition.left - 300
+                        }
+                    }, {silent: true});
+
+                    relatedTable.set({
+                        availablePlace: relatedTableAvailablePlace
+                    }, {silent: true});
+
+                    itemView.$el.css(model.get('position'));
+                }
+            } else {
+                model.set({
+                    position: {
+                        top: 50,
+                        left: 50
+                    }
+                }, {silent: true});
+
+                itemView.$el.css(model.get('position'));
+            }
+
+            (function (tableName, relatedTableName) {
+                setTimeout(function () {
+                    this.plumbInstance.connect({
+                        target: tableName,
+                        source: relatedTableName,
+                        anchors: anchors,
+                        connector: 'Straight',
+                        paintStyle:{ strokeStyle:"#008CBA", lineWidth: 3},
+                        endpointStyle:{ fillStyle:"#008CBA", radius: 3}
+                    });
+                }.bind(this), 0);
+            }.bind(this)(tableName, relatedTableName));
 
             return this;
-        },
-        serialize: function () {
-            return this.collection.serialize();
         },
         calculateHeight: function () {
             setTimeout(function () {
@@ -53,15 +146,22 @@ define(function (require) {
         },
         onDrop: function (event) {
             console.log('drop', this.draggedTableModel);
-            this.collection.add(this.draggedTableModel.toJSON());
+            Tamanoir.connecion.getColumns(this.draggedTableModel.get('name')).then(function (columns) {
+                this.collection.add(_.extend(this.draggedTableModel.toJSON(), {
+                    columns: _.map(columns, function (value) {
+                        return value.name;
+                    }),
+                    position: {top: event.originalEvent.offsetY, left: event.originalEvent.offsetX}
+                }));
+            }.bind(this));
         },
         onSidebarTableDragStart: function (table) {
             console.log('dragstart', table);
             this.draggedTableModel = table;
         },
-        onDataCanvasItemClick: function (table) {
-            console.log('canvas item clicked', table);
-            this.$('.table-settings-holder').html(new TableSettingsView({model: table}).$el);
+        remove: function () {
+            _.invoke(this._subviews, 'remove');
+            Backbone.View.prototype.remove.apply(this, arguments);
         }
     });
 });

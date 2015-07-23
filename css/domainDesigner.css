@@ -4,25 +4,16 @@
     color: #ffffff;
 }
 
-.domain-designer-view .domain-designer-title {
+.domain-designer-view .productTitle,
+.domain-designer-view .toolbar-item {
     display: inline-block;
     height: 40px;
-    cursor: pointer;
     line-height: 40px;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding: 0 20px;
+    cursor: pointer;
 }
 
-.domain-designer-view .domain-designer-header [class*='foundicon-'] {
-    height: 40px;
-    cursor: pointer;
-    font-size: 20px;
-    line-height: 40px;
-    text-align: center;
-    width: 40px;
-}
-
-.domain-designer-view .domain-designer-header [class*='foundicon-']:hover {
+.domain-designer-view .toolbar-item:hover {
     background: #222222;
 }
 
@@ -31,4 +22,8 @@
     color: white;
     padding-left: 20px;
     line-height: initial;
+}
+
+.domain-designer-view .sidebar {
+    border-right: 1px solid #007095;
 }

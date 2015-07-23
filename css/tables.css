@@ -9,6 +9,20 @@
 
 .tables-view ul {
     overflow: auto;
+    margin: 0;
+}
+
+.tables-view li {
+    padding-left: 20px;
+    color: #008CBA;
+    cursor: move;
+    border-bottom: 1px solid #f1f1f1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tables-view li:last-child {
+    border-bottom: 0;
 }
 
 .tables-view ul li span {

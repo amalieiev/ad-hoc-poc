@@ -24,7 +24,7 @@ define(function (require) {
         template: _.template(AnalysisViewTemplate),
         events: {
             'click .editDomain': 'onEditDomainClick',
-            'click .analysis-title': 'onProductTitleClick',
+            'click .productTitle': 'onProductTitleClick',
             'click .table-view td': 'onCellClick'
         },
         initialize: function () {
@@ -138,9 +138,9 @@ define(function (require) {
                 query;
 
             if (groups.length) {
-                query = 'SELECT ' + 'COUNT(*), ' + groups.concat(groupByNames) + ' FROM ' + tables + ' WHERE ' + conditions.concat(filters).join(' AND ') + ' GROUP BY ' + groups + ' LIMIT 100';
+                query = 'SELECT ' + 'COUNT(*), ' + groups.concat(groupByNames) + ' FROM ' + tables + (conditions.concat(filters).length ? ' WHERE ' : '') + conditions.concat(filters).join(' AND ') + ' GROUP BY ' + groups + ' LIMIT 100';
             } else {
-                query = 'SELECT ' + (columns.length ? columns : '*') + ' FROM ' + tables + ' WHERE ' + conditions.concat(filters).join(' AND ') + ' LIMIT 100';
+                query = 'SELECT ' + (columns.length ? columns : '*') + ' FROM ' + tables + (conditions.concat(filters).length ? ' WHERE ' : '') + conditions.concat(filters).join(' AND ') + ' LIMIT 100';
             }
 
             return query;

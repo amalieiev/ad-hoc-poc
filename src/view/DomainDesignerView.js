@@ -19,7 +19,7 @@ define(function (require) {
         className: 'domain-designer-view',
         template: DomainDesignerViewTemplate,
         events: {
-            'click .domain-designer-title': 'onProductTitleClick',
+            'click .productTitle': 'onProductTitleClick',
             'click .saveDomain': 'onSaveDomainClick',
             'click .analysis': 'onAnalysisClick'
         },
@@ -32,7 +32,6 @@ define(function (require) {
             this.dataCanvasItemsCollection = new DataCanvasItemsCollection();
 
             this.listenTo(this.dataCanvasItemsCollection, 'change update reset', this.onCanvasItemsChange);
-            this.listenTo(Tamanoir, 'tables:table:click', this.onSidebarTableClick);
 
             if (this.model.isNew()) {
                 this.connectionModel = new PostgreSQLConnectionModel({id: this.model.get('connectionId')});
@@ -87,19 +86,13 @@ define(function (require) {
                 var bodyHeight = $('body').height(),
                     sectionHeight = Math.round((bodyHeight - 40) / 2);
 
+                this.$('.sidebar').height(bodyHeight - 40);
                 this.$('.top-section').height(sectionHeight);
-                this.$('.sidebar').height(sectionHeight);
                 this.$('.bottom-section').height(bodyHeight - sectionHeight - 40);
             }.bind(this), 0);
         },
         onProductTitleClick: function () {
             Tamanoir.navigate('/', {trigger: true});
-        },
-        onSidebarTableClick: function (table) {
-            console.log('table clicked', table);
-            this.connectionModel.query('SELECT * FROM ' + table.get('name') + ' LIMIT 100').then(function (data) {
-                this.tableDataCollection.reset(data);
-            }.bind(this));
         },
         onCanvasItemsChange: function () {
             if (this.dataCanvasItemsCollection.size() === 0) {
@@ -109,16 +102,18 @@ define(function (require) {
 
             var columns = this.dataCanvasItemsCollection.getColumns(),
                 tables = this.dataCanvasItemsCollection.getTables(),
-                query = 'SELECT ' + (columns.length ? columns : '*') + ' FROM ' + tables + ' LIMIT 100';
+                conditions = this.dataCanvasItemsCollection.getConditions(),
+                query;
+
+            conditions = conditions.length ? ' WHERE ' + conditions.join(' AND ') : '';
+
+            query = 'SELECT ' + (columns.length ? columns : '*') + ' FROM ' + tables + conditions + ' LIMIT 100';
 
             console.log('query rebuild:', query);
 
             this.connectionModel.query(query).then(function (data) {
                 this.tableDataCollection.reset(data);
             }.bind(this));
-
-            this.$('.saveDomain').removeClass('foundicon-checkmark');
-            this.$('.saveDomain').addClass('foundicon-star');
         },
         onSaveDomainClick: function (event) {
             if (this.model.isNew()) {
@@ -137,8 +132,6 @@ define(function (require) {
                         }, {
                             success: function (model) {
                                 Tamanoir.navigate('connection/' + model.get('connectionId') + '/' + model.get('id'));
-                                this.$('.saveDomain').removeClass('foundicon-star');
-                                this.$('.saveDomain').addClass('foundicon-checkmark');
                             }.bind(this)
                         });
                     }
@@ -147,9 +140,9 @@ define(function (require) {
             } else {
                 this.model.save({
                     data: this.dataCanvasItemsCollection.toJSON()
+                }).done(function () {
+                    Tamanoir.showMessage('Saved');
                 });
-                this.$('.saveDomain').removeClass('foundicon-star');
-                this.$('.saveDomain').addClass('foundicon-checkmark');
             }
         },
         onAnalysisClick: function () {

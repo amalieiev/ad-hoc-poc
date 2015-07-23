@@ -29,7 +29,7 @@ define(function (require) {
         },
         calculateHeight: function () {
             setTimeout(function () {
-                var topSectionHeight = $('.top-section').height(),
+                var topSectionHeight = $('.sidebar').height(),
                     titleHeight = this.$('.title').height();
 
                 this.$('ul').height(topSectionHeight - titleHeight);

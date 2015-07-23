@@ -9,3 +9,7 @@ body {
 ul {
     list-style: none;
 }
+
+.column {
+    padding: 0;
+}
